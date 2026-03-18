@@ -1,0 +1,28 @@
+<?php
+
+function extend_accessibility_webform_form_alter(array &$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id): void {
+  // Automatically attach to all Webform submission forms.
+  $is_submission_form = FALSE;
+
+  // Most Webform submission forms use internal IDs like:
+  //   webform_submission_{webform_id}_add_form
+  //   webform_submission_{webform_id}_edit_form
+  //   webform_submission_{webform_id}_form
+  if (is_string($form_id) && str_starts_with($form_id, 'webform_submission_')) {
+    $is_submission_form = TRUE;
+  }
+
+  // Additional guard based on the rendered form classes.
+  if (!$is_submission_form && isset($form['#attributes']['class']) && is_array($form['#attributes']['class'])) {
+    if (in_array('webform-submission-form', $form['#attributes']['class'], TRUE)) {
+      $is_submission_form = TRUE;
+    }
+  }
+
+  if ($is_submission_form) {
+    $form['#attached']['library'] ??= [];
+    if (!in_array('extend_accessibility_webform/custom_validator', $form['#attached']['library'], TRUE)) {
+      $form['#attached']['library'][] = 'extend_accessibility_webform/custom_validator';
+    }
+  }
+}

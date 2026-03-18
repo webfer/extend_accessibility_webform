@@ -1,0 +1,24 @@
+{
+  "name": "webfer/extend_accessibility_webform",
+  "description": "Improves Webform client-side validation errors by replacing error labels with an accessible span (role=alert) and wiring it to aria-describedby.",
+  "type": "drupal-module",
+  "license": "GPL-2.0-or-later",
+  "homepage": "https://github.com/webfer/extend_accessibility_webform",
+  "support": {
+    "issues": "https://github.com/webfer/extend_accessibility_webform/issues",
+    "source": "https://github.com/webfer/extend_accessibility_webform"
+  },
+  "require": {
+    "drupal/core": "^10 || ^11"
+  },
+  "keywords": [
+    "drupal",
+    "drupal-module",
+    "accessibility",
+    "a11y",
+    "webform",
+    "clientside-validation",
+    "aria",
+    "validation"
+  ]
+}

@@ -1,0 +1,8 @@
+name: 'Extend Accessibility Webform'
+type: module
+description: 'Improves Webform client-side validation errors by replacing error labels with an accessible span (role=alert) and wiring it to aria-describedby.'
+package: Custom
+core_version_requirement: ^10 || ^11
+dependencies:
+  - clientside_validation:clientside_validation
+  - webform:webform
