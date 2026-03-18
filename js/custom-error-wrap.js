@@ -67,14 +67,37 @@
 
               const forId = $this.attr('for');
               if (forId) {
-                const $input = $('#' + forId);
-                if ($input.length) {
-                  const describedby = $input.attr('aria-describedby') || '';
-                  const ids = describedby.split(/\s+/).filter(Boolean);
-                  if (!ids.includes($span.attr('id'))) {
-                    ids.push($span.attr('id'));
-                    $input.attr('aria-describedby', ids.join(' '));
-                  }
+                let $targets = $();
+
+                if (typeof $.escapeSelector === 'function') {
+                  $targets = $('#' + $.escapeSelector(forId));
+                }
+                else {
+                  $targets = $('#' + forId);
+                }
+
+                // For radio/checkbox groups, jQuery Validate often sets `for`
+                // to the element name (not an id). In that case, attach the
+                // error to all matching inputs by name.
+                if (!$targets.length) {
+                  $targets = $(self.currentForm)
+                    .find(':input')
+                    .filter(function () {
+                      return this.name === forId;
+                    });
+                }
+
+                if ($targets.length) {
+                  const errorId = $span.attr('id');
+                  $targets.each(function () {
+                    const $input = $(this);
+                    const describedby = $input.attr('aria-describedby') || '';
+                    const ids = describedby.split(/\s+/).filter(Boolean);
+                    if (!ids.includes(errorId)) {
+                      ids.push(errorId);
+                      $input.attr('aria-describedby', ids.join(' '));
+                    }
+                  });
                 }
               }
             }
