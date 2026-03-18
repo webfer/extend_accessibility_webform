@@ -1,6 +1,9 @@
 (function ($) {
   if (typeof $.validator !== 'undefined') {
+    const MODULE_ERROR_CLASS = 'extend-accessibility-webform-error';
+
     $.validator.setDefaults({
+      errorClass: MODULE_ERROR_CLASS,
       showErrors: function (errorMap, errorList) {
         this.defaultShowErrors();
 
@@ -20,6 +23,7 @@
         };
 
         const self = this;
+        const configuredErrorClass = (self.settings && self.settings.errorClass) || 'error';
 
         $.each(errorList, function (index, error) {
           const $labelOrSpan = self.errorsFor(error.element);
@@ -28,7 +32,7 @@
 
             if (
               this.tagName.toLowerCase() === 'label' &&
-              $this.hasClass('error') &&
+              ($this.hasClass(configuredErrorClass) || $this.hasClass('error')) &&
               this.id &&
               (this.id.endsWith('-error') || this.id.startsWith('error-'))
             ) {
@@ -39,9 +43,19 @@
                 return;
               }
 
+              const originalClasses = ($this.attr('class') || '')
+                .split(/\s+/)
+                .filter(Boolean);
+              const normalizedClasses = originalClasses
+                .map((className) => (className === 'error' ? MODULE_ERROR_CLASS : className))
+                .filter((className, i, arr) => arr.indexOf(className) === i);
+              if (!normalizedClasses.includes(MODULE_ERROR_CLASS)) {
+                normalizedClasses.push(MODULE_ERROR_CLASS);
+              }
+
               const $span = $('<span>', {
                 id: this.id,
-                class: $this.attr('class'),
+                class: normalizedClasses.join(' '),
                 role: 'alert',
                 'aria-live': 'assertive',
                 'data-error-replaced': 'true',
