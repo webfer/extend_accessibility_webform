@@ -1,6 +1,6 @@
 (function ($) {
   if (typeof $.validator !== 'undefined') {
-    const MODULE_ERROR_CLASS = 'extend-accessibility-webform-error';
+    const MODULE_ERROR_CLASS = 'form-item--error';
 
     $.validator.setDefaults({
       errorClass: MODULE_ERROR_CLASS,
@@ -23,7 +23,8 @@
         };
 
         const self = this;
-        const configuredErrorClass = (self.settings && self.settings.errorClass) || 'error';
+        const configuredErrorClass =
+          (self.settings && self.settings.errorClass) || 'error';
 
         $.each(errorList, function (index, error) {
           const $labelOrSpan = self.errorsFor(error.element);
@@ -32,7 +33,8 @@
 
             if (
               this.tagName.toLowerCase() === 'label' &&
-              ($this.hasClass(configuredErrorClass) || $this.hasClass('error')) &&
+              ($this.hasClass(configuredErrorClass) ||
+                $this.hasClass('error')) &&
               this.id &&
               (this.id.endsWith('-error') || this.id.startsWith('error-'))
             ) {
@@ -47,7 +49,9 @@
                 .split(/\s+/)
                 .filter(Boolean);
               const normalizedClasses = originalClasses
-                .map((className) => (className === 'error' ? MODULE_ERROR_CLASS : className))
+                .map((className) =>
+                  className === 'error' ? MODULE_ERROR_CLASS : className,
+                )
                 .filter((className, i, arr) => arr.indexOf(className) === i);
               if (!normalizedClasses.includes(MODULE_ERROR_CLASS)) {
                 normalizedClasses.push(MODULE_ERROR_CLASS);
@@ -71,8 +75,7 @@
 
                 if (typeof $.escapeSelector === 'function') {
                   $targets = $('#' + $.escapeSelector(forId));
-                }
-                else {
+                } else {
                   $targets = $('#' + forId);
                 }
 
@@ -98,6 +101,76 @@
                       $input.attr('aria-describedby', ids.join(' '));
                     }
                   });
+
+                  // Case 1: single radio button.
+                  // Ensure the error span is rendered as the last element in the current container that also includes input/label.
+                  const firstTargetType = (
+                    ($targets.get(0) || {}).type || ''
+                  ).toLowerCase();
+                  if (firstTargetType === 'radio' && $targets.length === 1) {
+                    const $currentContainer = $span.parent();
+                    if ($currentContainer.length) {
+                      $currentContainer.append($span);
+                    }
+                  }
+
+                  // Case 3: single checkbox.
+                  // Keep the error in the current container and ensure it is rendered last (after input and label).
+                  if (firstTargetType === 'checkbox' && $targets.length === 1) {
+                    const $currentContainer = $span.parent();
+                    if ($currentContainer.length) {
+                      $currentContainer.append($span);
+                    }
+                  }
+
+                  // Case 2: radio buttons group.
+                  // Move the error span one level up and place it last in the new container.
+                  if (firstTargetType === 'radio' && $targets.length > 1) {
+                    $span.addClass('form-item-group--error');
+                    const $currentContainer = $span.parent();
+                    const $upperContainer = $currentContainer.parent();
+                    if ($upperContainer.length) {
+                      $upperContainer.append($span);
+                    }
+                  }
+
+                  // Case 4: checkbox group.
+                  // Move the error span one level up and place it last in the new container.
+                  if (
+                    firstTargetType === 'checkbox' &&
+                    ($targets.length > 1 ||
+                      $targets
+                        .first()
+                        .closest(
+                          '.js-webform-checkboxes, .form-checkboxes, fieldset, .fieldset-wrapper',
+                        )
+                        .find(':checkbox').length > 1)
+                  ) {
+                    $span.addClass('form-item-group--error');
+                    const $currentContainer = $span.parent();
+                    const $upperContainer = $currentContainer.parent();
+                    if ($upperContainer.length) {
+                      $upperContainer.append($span);
+                    }
+
+                    // Reuse jQuery Validate's native behavior for add/remove
+                    // error states by re-validating the anchor checkbox when
+                    // any checkbox in the group changes.
+                    const $groupContainer = $targets
+                      .first()
+                      .closest(
+                        '.js-webform-checkboxes, .form-checkboxes, fieldset, .fieldset-wrapper',
+                      );
+                    const anchorElement = $targets.get(0);
+                    if ($groupContainer.length && anchorElement) {
+                      const eventNs = '.extendA11yCheckboxGroupError';
+                      $groupContainer
+                        .off('change' + eventNs, ':checkbox')
+                        .on('change' + eventNs, ':checkbox', function () {
+                          self.element(anchorElement);
+                        });
+                    }
+                  }
                 }
               }
             }

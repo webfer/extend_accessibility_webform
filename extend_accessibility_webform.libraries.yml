@@ -1,5 +1,5 @@
 custom_validator:
-  version: 1.1.5
+  version: 1.1.6
   js:
     js/custom-error-wrap.js: {}
   dependencies:
